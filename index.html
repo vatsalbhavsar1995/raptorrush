@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a0f0c">
+<title>Raptor Rush</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=Bowlby+One&display=swap">
+<link rel="stylesheet" href="/src/ui/styles.css">
+</head>
+<body>
+<canvas id="c"></canvas><div id="vig"></div>
+<div class="panel" id="vitals"><div class="row"><b>Health</b><div class="bar"><i id="lb"></i></div></div><div class="row"><b>Hunger</b><div class="bar"><i id="hb"></i></div></div><div class="row"><b>Stamina</b><div class="bar"><i id="sb"></i></div></div></div>
+<div class="panel" id="score"><div id="lv"></div><div id="sc">0</div><div id="tm">0:00</div></div>
+<canvas id="map" width="220" height="220"></canvas><div id="toast"></div><div id="warn">⚠ T. rex nearby</div><div id="boss"><div id="bn"></div><div class="bar"><i id="bh"></i></div></div>
+<button id="bite">Bite</button><button id="pbtn" aria-label="Pause">II</button>
+<div id="pause" class="hide"><h2>Paused</h2><div id="opts"></div><div class="pbts"><button id="resume">Resume</button><button id="restart" class="sec">Restart</button><button id="quit" class="sec">Title</button></div></div>
+<div id="obj">Roam the island</div><button id="run">Sprint</button><div id="joy"><i></i></div>
+<div id="card"><h1 id="ti">Raptor<br>Rush</h1><p id="msg">One island. Four biomes. No levels — just roam, hunt, eat and survive. Chase compies for quick meals. Bring down Triceratops for a feast. When your score hits 25, a boss spawns. WASD / arrows to move, Shift to sprint, Space to bite. Drag right to look around.</p><button id="go">Start hunting</button></div>
+<script type="module" src="/src/main.js"></script>
+</body></html>
+

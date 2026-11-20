@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Raptor Rush</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=Bowlby+One&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{--ink:#1a0f0c;--bone:#fff1dc;--amber:#ffb23e;--ember:#ff5a3c;--moss:#a6e05a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;background:var(--ink);color:var(--bone);overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;font-weight:600}
+canvas#c{display:block;width:100%;height:100%}
+#vig{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,60,40,.7))}
+.panel{position:fixed;background:linear-gradient(90deg,rgba(26,15,12,.72),rgba(26,15,12,.25));padding:10px 14px 10px 12px;border-left:4px solid var(--amber);clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%)}
+#vitals{top:calc(env(safe-area-inset-top,0px) + 12px);left:10px;display:grid;gap:7px}
+.row{display:flex;align-items:center;gap:9px;font-size:16px;letter-spacing:.04em}
+.row b{width:62px;font-weight:600}
+.bar{width:150px;height:12px;background:rgba(255,241,220,.15);transform:skewX(-18deg);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:repeating-linear-gradient(90deg,var(--amber) 0 8px,transparent 8px 10px);transition:width .1s}
+.bar i.low{background:repeating-linear-gradient(90deg,var(--ember) 0 8px,transparent 8px 10px)}
+#sb{background:repeating-linear-gradient(90deg,var(--moss) 0 8px,transparent 8px 10px)}
+#lb{background:repeating-linear-gradient(90deg,#ff7a8a 0 8px,transparent 8px 10px)}
+#lv{font-size:13px;letter-spacing:.1em;opacity:.7;text-transform:uppercase}
+#boss{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 152px);display:none}
+#bn{font:400 15px 'Bowlby One',Impact,sans-serif;color:var(--amber);margin-bottom:4px}
+#boss .bar{width:190px;height:14px}
+#bh{background:repeating-linear-gradient(90deg,var(--ember) 0 8px,transparent 8px 10px)}
+#bite{position:fixed;right:114px;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);width:76px;height:76px;border-radius:50%;border:3px solid var(--ember);background:rgba(26,15,12,.5);color:var(--bone);font:600 18px 'Barlow Condensed',sans-serif}
+#bite:active{background:var(--ember)}
+#pbtn{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 214px);width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,241,220,.7);background:rgba(26,15,12,.5);color:var(--bone);font:600 16px 'Barlow Condensed',sans-serif}
+#pause{position:fixed;inset:0;display:grid;align-content:safe center;justify-content:center;gap:14px;padding:24px;background:rgba(26,15,12,.9);overflow:auto}
+#pause.hide{display:none}
+#pause h2{margin:0;font:400 44px/1 'Bowlby One',Impact,sans-serif;color:var(--amber)}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:20px}
+.seg{display:flex;gap:4px}
+.seg button{padding:6px 12px;border:2px solid rgba(255,241,220,.4);background:transparent;color:var(--bone);font:600 17px 'Barlow Condensed',sans-serif}
+.seg button.on{background:var(--amber);border-color:var(--amber);color:var(--ink)}
+.pbts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.pbts button{padding:10px 18px;border:0;background:var(--amber);color:var(--ink);font:600 19px 'Barlow Condensed',sans-serif}
+.pbts button.sec{background:transparent;border:2px solid var(--bone);color:var(--bone)}
+#card{position:fixed;inset:0;display:grid;place-content:center;gap:16px;padding:24px;background:linear-gradient(120deg,rgba(26,15,12,.88),rgba(26,15,12,.45));overflow:auto;align-content:safe center}
+#card.hide{display:none}
+h1{margin:0;font:400 clamp(52px,14vw,96px)/.92 "Bowlby One",Impact,"Arial Black",sans-serif;color:var(--amber);text-shadow:0 5px 0 #a24b1c}
+#msg{margin:0;max-width:30ch;font-size:21px;line-height:1.3}
+#go{justify-self:start;padding:12px 34px;border:0;background:var(--amber);color:var(--ink);font:600 22px "Barlow Condensed",sans-serif;letter-spacing:.05em;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+button:focus-visible{outline:3px solid var(--bone);outline-offset:3px}
+#shop{display:none;gap:6px;width:min(340px,100%)}
+.shead{font-size:20px;display:flex;justify-content:space-between;color:var(--amber)}
+.upb{display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;align-items:center;text-align:left;padding:8px 12px;border:2px solid rgba(255,241,220,.4);background:rgba(26,15,12,.6);color:var(--bone);font:600 18px 'Barlow Condensed',sans-serif}
+.upb small{grid-column:1/-1;opacity:.7;font-size:14px}
+.upb i{font-style:normal;letter-spacing:2px;color:var(--amber);font-size:14px}
+.upb:disabled{opacity:.45}
+#toast{position:fixed;left:50%;top:32%;transform:translateX(-50%);text-align:center;font:400 clamp(30px,8vw,52px)/1.05 'Bowlby One',Impact,sans-serif;color:var(--amber);text-shadow:0 4px 0 #a24b1c;opacity:0;transition:opacity .5s;pointer-events:none;white-space:nowrap}
+#toast small{display:block;margin-top:8px;font:600 20px 'Barlow Condensed',sans-serif;color:var(--bone);text-shadow:0 2px 6px rgba(0,0,0,.6)}
+#warn{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 126px);font:400 16px 'Bowlby One',Impact,sans-serif;color:var(--ember);text-shadow:0 2px 0 #000;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+#score{top:calc(env(safe-area-inset-top,0px) + 12px);right:10px;text-align:right;border-left:0;border-right:4px solid var(--amber);clip-path:polygon(12px 0,100% 0,100% 100%,0 100%);padding:8px 12px 8px 22px;background:linear-gradient(270deg,rgba(26,15,12,.72),rgba(26,15,12,.25))}
+#sc{font:400 40px/1 "Bowlby One",Impact,sans-serif;color:var(--amber)}
+#tm{font-size:16px;opacity:.85}
+#map{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 96px);width:110px;height:110px;border-radius:50%;border:3px solid rgba(255,241,220,.7);background:rgba(26,15,12,.5)}
+#obj{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);font-size:20px;letter-spacing:.06em;text-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap}
+#run{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 56px);width:86px;height:86px;border-radius:50%;border:3px solid var(--moss);background:rgba(26,15,12,.5);color:var(--bone);font:600 18px "Barlow Condensed",sans-serif}
+#run.on{background:var(--moss);color:var(--ink)}
+#joy{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border:2px solid rgba(255,241,220,.5);border-radius:50%;display:none;pointer-events:none}
+#joy i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px;border-radius:50%;background:rgba(255,241,220,.55)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vig"></div>
+<div class="panel" id="vitals">
+  <div class="row"><b>Health</b><div class="bar"><i id="lb"></i></div></div>
+  <div class="row"><b>Hunger</b><div class="bar"><i id="hb"></i></div></div>
+  <div class="row"><b>Stamina</b><div class="bar"><i id="sb"></i></div></div>
+</div>
+<div class="panel" id="score"><div id="lv"></div><div id="sc">0</div><div id="tm">0:00</div></div>
+<canvas id="map" width="220" height="220"></canvas>
+<div id="toast"></div>
+<div id="warn">⚠ T. rex nearby</div>
+<div id="boss"><div id="bn"></div><div class="bar"><i id="bh"></i></div></div>
+<button id="bite">Bite</button>
+<button id="pbtn" aria-label="Pause">II</button>
+<div id="pause" class="hide">
+  <h2>Paused</h2>
+  <div id="opts"></div>
+  <div class="pbts"><button id="resume">Resume</button><button id="restart" class="sec">Restart</button><button id="quit" class="sec">Title</button></div>
+</div>
+<div id="obj">Roam the island</div>
+<button id="run">Sprint</button>
+<div id="joy"><i></i></div>
+<div id="card">
+  <h1 id="ti">Raptor<br>Rush</h1>
+  <p id="msg">One island. Four biomes. No levels — just roam, hunt, eat and survive. Chase compies for quick meals. Bring down Triceratops for a feast. When your score hits 25, a boss spawns. WASD / arrows to move, Shift to sprint, Space to bite. Drag right to look around.</p>
+  <div id="shop"></div>
+  <button id="go">Start hunting</button>
+</div>
+<script>
+const T=THREE,$=id=>document.getElementById(id);
+const cv=$('c'),ren=new T.WebGLRenderer({canvas:cv,antialias:true});
+ren.setPixelRatio(Math.min(devicePixelRatio||1,2));ren.shadowMap.enabled=true;
+const scene=new T.Scene();scene.background=new T.Color(0xf2b27c);scene.fog=new T.Fog(0xf2b27c,40,140);
+const cam=new T.PerspectiveCamera(55,1,.1,300);
+function resize(){ren.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+
+const hemi=new T.HemisphereLight(0xffe2c0,0x3b5a3a,.95);scene.add(hemi);
+const sun=new T.DirectionalLight(0xffd0a0,1.15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+Object.assign(sun.shadow.camera,{left:-36,right:36,top:36,bottom:-36,near:1,far:140});
+scene.add(sun,sun.target);
+
+const HS=120,M=c=>new T.MeshLambertMaterial({color:c,flatShading:true});
+const gh=(x,z)=>Math.sin(x*.045)*3+Math.cos(z*.05)*3+Math.sin((x+z)*.11)*1.2;
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=rng(11);
+
+// ---- ZONES (four biomes, one island) ----
+const ZONES=[
+ {name:'Jungle',  cx:0,   cz:0,   r:55, sky:0xf2b27c,fog:[40,140],lo:0x3f7a38,hi:0x8cc152,leaf:[0x2d7a55,0x24664a,0x3a8f5a],rock:0x8a7a8c, hemi:[0xffe2c0,0x3b5a3a],sun:0xffd0a0},
+ {name:'Swamp',   cx:-62, cz:-58, r:44, sky:0x8fb3a0,fog:[16,80], lo:0x25483f,hi:0x5f8f6b,leaf:[0x4f6f3a,0x3d5a34,0x5d7d45],rock:0x6f7f78, hemi:[0xcfe8d0,0x203830],sun:0xd8f0c0},
+ {name:'Volcano', cx:65,  cz:-52, r:40, sky:0x4a1f1a,fog:[25,100],lo:0x2a1a1a,hi:0x7a3b22,leaf:[0x3a2a26,0x2f2220,0x4a342c],rock:0x4a3a40, hemi:[0xff9a5a,0x2a0f0a],sun:0xff7a3a},
+ {name:'Tundra',  cx:12,  cz:72,  r:48, sky:0xcfe6f5,fog:[30,120],lo:0xaac4d8,hi:0xf2f8ff,leaf:[0x7fb0c8,0x6a9ab8,0x9cc6dc],rock:0x9aa8b8, hemi:[0xeaf5ff,0x6a88a0],sun:0xfff2e0}
+];
+function nearestZone(x,z){let best=ZONES[0],bd=1e9;for(const Z of ZONES){const d=Math.hypot(x-Z.cx,z-Z.cz);if(d<bd){bd=d;best=Z}}return best}
+let curZone=null;
+function applyZone(Z){if(Z===curZone)return;curZone=Z;
+  scene.background.set(Z.sky);scene.fog.color.set(Z.sky);scene.fog.near=Z.fog[0];scene.fog.far=Z.fog[1];
+  leaf.forEach((m,i)=>m.color.set(Z.leaf[i]));rockM.color.set(Z.rock);
+  hemi.color.set(Z.hemi[0]);hemi.groundColor.set(Z.hemi[1]);sun.color.set(Z.sun);
+  $('lv').textContent=Z.name}
+
+// ---- TERRAIN ----
+let g=new T.PlaneGeometry(HS*2,HS*2,64,64);g.rotateX(-Math.PI/2);
+const p=g.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,gh(p.getX(i),p.getZ(i)));
+g=g.toNonIndexed();
+const pos=g.attributes.position,col=new Float32Array(pos.count*3);
+function paintLand(a,b,R2){const lo=new T.Color(a),hi=new T.Color(b),tc=new T.Color();
+  for(let i=0;i<pos.count;i+=3){const y=(pos.getY(i)+pos.getY(i+1)+pos.getY(i+2))/3;
+    tc.copy(lo).lerp(hi,Math.min(1,Math.max(0,(y+6)/12+(R2()-.5)*.35)));
+    for(let k=0;k<3;k++)col.set([tc.r,tc.g,tc.b],(i+k)*3)}}
+paintLand(0x3f7a38,0x8cc152,rng(5));
+g.setAttribute('color',new T.BufferAttribute(col,3));g.computeVertexNormals();
+const land=new T.Mesh(g,new T.MeshLambertMaterial({vertexColors:true,flatShading:true}));
+land.receiveShadow=true;scene.add(land);
+
+// ---- TREES & ROCKS ----
+const trunkG=new T.CylinderGeometry(.35,.5,2.4,5),coneG=new T.ConeGeometry(1,2.6,6),trunkM=M(0x6b3f26);
+const leaf=[M(0x2d7a55),M(0x24664a),M(0x3a8f5a)];
+const trees=[];
+for(let i=0;i<170;i++){const x=(R()*2-1)*(HS-6),z=(R()*2-1)*(HS-6);if(Math.hypot(x,z)<9)continue;
+  const s=.8+R()*.9,gr=new T.Group(),m=leaf[i%3];
+  const tr=new T.Mesh(trunkG,trunkM);tr.position.y=1.2;tr.castShadow=true;gr.add(tr);
+  [[2.7,2.6],[2.1,4.1],[1.4,5.5]].forEach(([r,y])=>{const c=new T.Mesh(coneG,m);c.scale.set(r,1,r);c.position.y=y;c.castShadow=true;gr.add(c)});
+  gr.scale.setScalar(s);gr.position.set(x,gh(x,z),z);gr.rotation.y=R()*6;scene.add(gr);trees.push({x,z,r:.5+.45*s})}
+const rockG=new T.DodecahedronGeometry(1,0),rockM=M(0x8a7a8c);
+for(let i=0;i<45;i++){const x=(R()*2-1)*(HS-4),z=(R()*2-1)*(HS-4),s=.6+R()*1.6,r=new T.Mesh(rockG,rockM);r.scale.set(s,s*.7,s);r.position.set(x,gh(x,z)+s*.2,z);r.rotation.set(R()*3,R()*3,0);r.castShadow=true;scene.add(r)}
+
+// ---- PLAYER RAPTOR ----
+const rap=new T.Group();
+const box=(w,h,d,c,x,y,z,par=rap)=>{const m=new T.Mesh(new T.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);m.castShadow=true;par.add(m);return m};
+box(1.3,1.2,2.4,0x7fb63f,0,1.9,0);box(.5,.12,1.7,0xffb23e,0,2.55,0);
+box(.7,.9,.8,0x7fb63f,0,2.6,1.3).rotation.x=-.5;
+box(.9,.8,1.3,0x93cc4a,0,3.2,1.9);box(.6,.35,.8,0x93cc4a,0,3.05,2.8);
+box(.14,.2,.2,0x1a0f0c,.47,3.4,2.2);box(.14,.2,.2,0x1a0f0c,-.47,3.4,2.2);
+box(.18,.5,.18,0x6a9a32,.5,2.2,1.1);box(.18,.5,.18,0x6a9a32,-.5,2.2,1.1);
+const tail=new T.Mesh(new T.ConeGeometry(.75,3.4,4),M(0x7fb63f));tail.rotation.x=-Math.PI/2;tail.position.set(0,1.9,-2.7);tail.castShadow=true;rap.add(tail);
+const legs=[.5,-.5].map(x=>{const pv=new T.Group();pv.position.set(x,1.4,-.1);box(.4,1.4,.5,0x6a9a32,0,-.7,0,pv);box(.5,.2,.9,0x4d7a25,0,-1.4,.25,pv);rap.add(pv);return pv});
+scene.add(rap);
+
+// ---- T.REX BUILDER ----
+function makeRex(){const g=new T.Group();
+  box(1.6,1.5,2.8,0xa8442c,0,2.2,0,g);box(1,.3,2,0xe0a566,0,1.5,.1,g);
+  box(.9,1.1,1,0xa8442c,0,3.2,1.5,g).rotation.x=-.4;
+  box(1.5,1.2,1.8,0xb94d32,0,3.9,2.3,g);box(1.2,.35,1.5,0xe0a566,0,3.25,2.4,g);
+  box(.18,.22,.22,0xffe14a,.62,4.2,2.6,g);box(.18,.22,.22,0xffe14a,-.62,4.2,2.6,g);
+  box(.2,.55,.2,0x8a3420,.7,2.6,1.4,g);box(.2,.55,.2,0x8a3420,-.7,2.6,1.4,g);
+  const tl=new T.Mesh(new T.ConeGeometry(.95,4.2,4),M(0xa8442c));tl.rotation.x=-Math.PI/2;tl.position.set(0,2.2,-3.4);tl.castShadow=true;g.add(tl);
+  g.userData.legs=[.7,-.7].map(x=>{const pv=new T.Group();pv.position.set(x,1.8,-.1);box(.6,1.8,.7,0x8a3420,0,-.9,0,pv);box(.7,.25,1.2,0x5e2416,0,-1.8,.3,pv);g.add(pv);return pv});
+  g.scale.setScalar(1.25);scene.add(g);return g}
+
+// ---- BERRIES ----
+const berG=new T.IcosahedronGeometry(.5,0),berM=new T.MeshBasicMaterial({color:0xffb23e});
+const beamG=new T.CylinderGeometry(.12,.12,9,6,1,true),beamM=new T.MeshBasicMaterial({color:0xffc15a,transparent:true,opacity:.28,depthWrite:false});
+function newBerry(){for(;;){const x=(Math.random()*2-1)*(HS-8),z=(Math.random()*2-1)*(HS-8);
+  if(trees.some(t=>Math.hypot(t.x-x,t.z-z)<t.r+1.2))continue;
+  const gr=new T.Group(),b=new T.Mesh(berG,berM),bm=new T.Mesh(beamG,beamM);b.position.y=1;bm.position.y=5;gr.add(b,bm);gr.position.set(x,gh(x,z),z);scene.add(gr);return{x,z,gr,b}}}
+
+// ---- COMPY & TRIKE BUILDERS ----
+function makeCompy(){const g=new T.Group();
+  box(.7,.6,1.3,0xe6c35a,0,.9,0,g);box(.45,.45,.6,0xf0d070,0,1.35,.8,g);
+  box(.1,.12,.12,0x1a0f0c,.2,1.5,1.05,g);box(.1,.12,.12,0x1a0f0c,-.2,1.5,1.05,g);
+  const t=new T.Mesh(new T.ConeGeometry(.28,1.3,4),M(0xe6c35a));t.rotation.x=-Math.PI/2;t.position.set(0,.9,-1.1);g.add(t);
+  box(.15,.7,.2,0xb8943a,.2,.35,0,g);box(.15,.7,.2,0xb8943a,-.2,.35,0,g);scene.add(g);return g}
+function makeTrike(){const g=new T.Group();
+  box(2,1.8,3.6,0x8d7b5c,0,2,0,g);box(1.5,1.3,1.4,0x9c8a68,0,2.2,2.3,g);box(2.6,2.2,.35,0xc0603c,0,3.3,1.5,g);
+  box(.22,.22,1.3,0xf0e6c8,.45,2.6,3.2,g);box(.22,.22,1.3,0xf0e6c8,-.45,2.6,3.2,g);box(.22,.22,.8,0xf0e6c8,0,2.2,3.2,g);
+  [[.8,1.4],[-.8,1.4],[.8,-1.2],[-.8,-1.2]].forEach(([x,z])=>box(.55,1.2,.6,0x6d5c40,x,.6,z,g));scene.add(g);return g}
+
+// ---- STOMP RING ----
+const ring=new T.Mesh(new T.RingGeometry(.9,1,32),new T.MeshBasicMaterial({color:0xff7a1a,transparent:true,opacity:.7,side:T.DoubleSide,depthWrite:false}));
+ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
+
+// ---- BOSS DEFINITIONS ----
+const BOSS=[
+ {name:'Alpha Rex',  hp:60,k:1.9,spd:11,dmg:30,tint:0xffb070,rest:2.2},
+ {name:'Spinosaur',  hp:70,k:1.9,spd:12,dmg:30,tint:0x70b0b8,sail:0x2f7f8a,rest:2,ab:'lunge'},
+ {name:'Magma Rex',  hp:80,k:2,  spd:12,dmg:30,tint:0x663030,spikes:1,rest:2,ab:'stomp'},
+ {name:'Frost Tyrant',hp:90,k:2, spd:13,dmg:30,tint:0xaadcff,rest:1.8,ab:'chill'}
+];
+let bossIdx=0;
+
+// ---- GAME STATE ----
+let P={x:0,z:0,a:0,s:0};
+let health=100,hunger=100,stam=100,tired=false;
+let hurt=0,shake=0,slow=0;
+let berries=[],rexes=[],npcs=[],boss=null;
+let eaten=0,score=0,coins=0;
+let wantBite=false,biteCd=0,biteT=0;
+let ringT=0,ringX=0,ringZ=0;
+let t0=0,state='menu',keys={},joy=null,sprint=false;
+let cx=0,cz=0,camYaw=0,camPitch=.675,camDist=19.2,lastView=-1;
+
+const up={speed:0,stam:0,bite:0,armor:0,meta:0};
+const MAXU=5,upCost=k=>5+4*up[k],BD=()=>10+3*up.bite;
+function hurtP(n){health-=n*(1-.12*up.armor)}
+
+// ---- SETTINGS ----
+let S={shadows:1,quality:1,map:1,shake:1,diff:1,view:1,cam:0};
+try{Object.assign(S,JSON.parse(localStorage.getItem('rr_set')||'{}'))}catch(e){}
+const SETD=[['shadows','Shadows',['Off','On']],['quality','Quality',['Low','High']],['map','Minimap',['Off','On']],['shake','Screen shake',['Off','On']],['diff','Difficulty',['Easy','Normal','Hard']],['view','Camera distance',['Near','Mid','Far']],['cam','Camera mode',['Free','Follow']]];
+function applySet(){const sh=!!S.shadows;if(sh!==ren.shadowMap.enabled){ren.shadowMap.enabled=sh;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true})}sun.castShadow=sh;ren.setPixelRatio(S.quality?Math.min(devicePixelRatio||1,2):1);resize();$('map').style.display=S.map?'block':'none';if(S.view!==lastView){camDist=[14,19.2,27][S.view];lastView=S.view}try{localStorage.setItem('rr_set',JSON.stringify(S))}catch(e){}}
+function renderOpts(){const o=$('opts');o.innerHTML='';SETD.forEach(([k,n,ch])=>{const r=document.createElement('div');r.className='opt';r.innerHTML='<span>'+n+'</span>';const sg=document.createElement('div');sg.className='seg';ch.forEach((c,i)=>{const b=document.createElement('button');b.textContent=c;if(S[k]===i)b.className='on';b.onclick=()=>{S[k]=i;applySet();renderOpts()};sg.appendChild(b)});r.appendChild(sg);o.appendChild(r)})}
+applySet();
+
+// ---- SHOP ----
+const UP=[['speed','Speed','Run and sprint faster'],['stam','Stamina','Sprint longer, recover faster'],['bite','Bite','More bite damage'],['armor','Armor','Take less damage'],['meta','Metabolism','Hunger drains slower']];
+function showShop(on){const s=$('shop');if(!on){s.style.display='none';return}
+  s.innerHTML='<div class="shead"><span>Upgrades</span><span>◆ '+coins+'</span></div>';
+  UP.forEach(([k,n,d])=>{const mx=up[k]>=MAXU,b=document.createElement('button');b.className='upb';b.disabled=mx||coins<upCost(k);
+    b.innerHTML='<b>'+n+'</b><i>'+('●'.repeat(up[k])+'○'.repeat(MAXU-up[k]))+'</i><span>'+(mx?'Max':'◆ '+upCost(k))+'</span><small>'+d+'</small>';
+    b.onclick=()=>{if(!mx&&coins>=upCost(k)){coins-=upCost(k);up[k]++;showShop(true)}};s.appendChild(b)});
+  s.style.display='grid'}
+
+// ---- POPULATION ----
+const POP_REX=4,POP_COMPY=12,POP_TRIKE=5,BERRY_COUNT=55,BOSS_EVERY=25;
+function pickSpot(){for(;;){const x=(Math.random()*2-1)*(HS-10),z=(Math.random()*2-1)*(HS-10);if(Math.hypot(x-P.x,z-P.z)>25)return[x,z]}}
+function spawnRex(){const a=Math.random()*6.28,d=50+Math.random()*25,cl=v=>Math.max(-HS+8,Math.min(HS-8,v)),x=cl(P.x+Math.cos(a)*d),z=cl(P.z+Math.sin(a)*d);return{g:makeRex(),x,z,a:0,s:0,mode:'patrol',t:6,wx:x,wz:z,k:1.25}}
+function addNpc(type){const[x,z]=pickSpot(),tk=type==='trike';npcs.push({type,g:tk?makeTrike():makeCompy(),x,z,a:Math.random()*6,s:0,hp:tk?50:10,mode:'wander',t:Math.random()*4,wx:x,wz:z,dead:false,flash:0,r:tk?1.8:.8})}
+function spawnBoss(){const B=BOSS[bossIdx%BOSS.length];rexes.forEach(r=>scene.remove(r.g));
+  const g=makeRex();g.traverse(o=>{if(o.isMesh)o.material.color.multiply(new T.Color(B.tint))});
+  if(B.sail)box(.15,1.7,2.4,B.sail,0,3.9,-.1,g);if(B.spikes)for(let i=0;i<4;i++)box(.3,.8,.3,0xff7a1a,0,3.4,-1.2+i*.9,g);
+  g.scale.setScalar(B.k);const a=Math.random()*6.28,cl=v=>Math.max(-HS+10,Math.min(HS-10,v)),x=cl(P.x+Math.cos(a)*45),z=cl(P.z+Math.sin(a)*45);
+  boss={g,x,z,a:0,s:0,mode:'chase',t:7,wx:x,wz:z,boss:B,hp:B.hp,k:B.k,cd:3,dash:0};rexes=[boss];
+  $('bn').textContent=B.name;$('boss').style.display='block';$('bh').style.width='100%';
+  toast(B.name,'Bite it down!')}
+function killNpc(n){n.dead=true;scene.remove(n.g);const tk=n.type==='trike';hunger=Math.min(100,hunger+(tk?45:24));coins+=tk?4:2;if(!boss){eaten+=tk?4:2;score+=tk?4:2}npcs=npcs.filter(o=>!o.dead);setTimeout(()=>addNpc(n.type),8000+Math.random()*12000)}
+function defeatBoss(){coins+=12;scene.remove(boss.g);rexes=Array.from({length:POP_REX},spawnRex);boss=null;bossIdx++;$('boss').style.display='none';toast('Boss fallen!','+12 coins · rexes return');score=0;$('sc').textContent=eaten}
+
+// ---- TOAST ----
+let toastTm;function toast(h,sub){const t=$('toast');t.innerHTML=h+'<small>'+sub+'</small>';t.style.opacity=1;clearTimeout(toastTm);toastTm=setTimeout(()=>{t.style.opacity=0},2600)}
+
+// ---- SETUP / START / DIE ----
+function setup(){berries.forEach(b=>scene.remove(b.gr));rexes.forEach(r=>scene.remove(r.g));npcs.forEach(n=>scene.remove(n.g));
+  berries=Array.from({length:BERRY_COUNT},newBerry);npcs=[];boss=null;$('boss').style.display='none';rexes=Array.from({length:POP_REX},spawnRex);
+  P={x:0,z:0,a:0,s:0};health=100;hunger=100;stam=100;tired=false;hurt=0;shake=0;slow=0;
+  eaten=0;score=0;coins=0;Object.keys(up).forEach(k=>up[k]=0);biteCd=0;biteT=0;ringT=0;
+  t0=performance.now();for(let i=0;i<POP_COMPY;i++)addNpc('compy');for(let i=0;i<POP_TRIKE;i++)addNpc('trike');bossIdx=0;applyZone(ZONES[0])}
+function begin(){setup();state='play';showShop(false);$('card').classList.add('hide');toast('Raptor Rush','Roam the whole island')}
+function start(){begin()}
+function die(cause){state='over';$('ti').innerHTML='Game<br>over';
+  $('msg').textContent=(cause||'Starved')+' after '+fmt(Math.floor((performance.now()-t0)/1000))+'. Eaten: '+eaten+' dinos.';
+  $('go').textContent='Hunt again';showShop(false);$('card').classList.remove('hide');$('vig').style.opacity=0;$('warn').style.opacity=0}
+$('go').onclick=start;
+
+// ---- PAUSE ----
+let pauseAt=0;
+function pauseGame(){if(state!=='play')return;state='paused';pauseAt=performance.now();joy=null;keys={};sprint=false;$('joy').style.display='none';$('run').classList.remove('on');renderOpts();$('pause').classList.remove('hide')}
+function resumeGame(){if(state!=='paused')return;t0+=performance.now()-pauseAt;state='play';$('pause').classList.add('hide')}
+function toTitle(){$('pause').classList.add('hide');setup();state='menu';$('ti').innerHTML='Raptor<br>Rush';$('msg').textContent='One island. Four biomes. No levels — just roam, hunt, eat and survive. Chase compies for quick meals. Bring down Triceratops for a feast. When your score hits 25, a boss spawns. WASD / arrows to move, Shift to sprint, Space to bite. Drag right to look around.';$('go').textContent='Start hunting';showShop(false);$('card').classList.remove('hide');$('vig').style.opacity=0;$('warn').style.opacity=0}
+$('pbtn').onclick=pauseGame;$('resume').onclick=resumeGame;$('quit').onclick=toTitle;
+$('restart').onclick=()=>{$('pause').classList.add('hide');begin()};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame()});
+
+// ---- BITE ----
+function doBite(){if(biteCd>0)return;biteCd=.55;biteT=.25;const fx=Math.sin(P.a),fz=Math.cos(P.a);
+  const hit=(o,rg)=>{const dx=o.x-P.x,dz=o.z-P.z,d=Math.hypot(dx,dz);return d<rg&&(d<2||(dx*fx+dz*fz)/d>.35)};
+  for(const r of rexes)if(hit(r,5+(r.k||1.25)*1.2)){if(r.boss){r.hp-=BD();shake=Math.max(shake,.2);$('bh').style.width=Math.max(0,r.hp/r.boss.hp*100)+'%';if(r.hp<=0){defeatBoss();return}}else{r.mode='rest';r.t=1.3}}
+  for(const n of npcs)if(!n.dead&&hit(n,5.5)){n.hp-=BD();n.flash=.2;if(n.hp<=0)killNpc(n)}}
+
+// ---- CONTROLS ----
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.startsWith('Arrow'))e.preventDefault();if(e.key===' '){wantBite=true;e.preventDefault()}if(e.key==='Escape'||e.key.toLowerCase()==='p'){state==='paused'?resumeGame():pauseGame()}});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+const rb=$('run');rb.addEventListener('pointerdown',()=>{sprint=true;rb.classList.add('on')});
+['pointerup','pointercancel','pointerleave'].forEach(n=>rb.addEventListener(n,()=>{sprint=false;rb.classList.remove('on')}));
+$('bite').addEventListener('pointerdown',()=>{wantBite=true});
+const jd=$('joy');
+let lk={id:null,x:0,y:0};
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);
+  if(e.pointerType!=='mouse'&&e.clientX<innerWidth*.5){if(joy)return;joy={id:e.pointerId,ox:e.clientX,oy:e.clientY,dx:0,dy:0};jd.style.display='block';jd.style.left=e.clientX+'px';jd.style.top=e.clientY+'px'}
+  else if(lk.id===null)lk={id:e.pointerId,x:e.clientX,y:e.clientY}});
+cv.addEventListener('pointermove',e=>{
+  if(joy&&e.pointerId===joy.id){let dx=e.clientX-joy.ox,dy=e.clientY-joy.oy;const m=Math.hypot(dx,dy);if(m>60){dx*=60/m;dy*=60/m}joy.dx=dx;joy.dy=dy;jd.firstChild.style.transform='translate('+dx+'px,'+dy+'px)'}
+  if(e.pointerId===lk.id){camYaw-=(e.clientX-lk.x)*.006;camPitch=Math.max(.25,Math.min(1.3,camPitch+(e.clientY-lk.y)*.004));lk.x=e.clientX;lk.y=e.clientY}});
+['pointerup','pointercancel'].forEach(n=>cv.addEventListener(n,e=>{if(joy&&e.pointerId===joy.id){joy=null;jd.style.display='none';jd.firstChild.style.transform=''}if(e.pointerId===lk.id)lk={id:null,x:0,y:0}}));
+cv.addEventListener('wheel',e=>{camDist=Math.max(10,Math.min(34,camDist+e.deltaY*.02));e.preventDefault()},{passive:false});
+
+// ---- MINIMAP ----
+const mapc=$('map').getContext('2d');
+function drawMap(){const w=220,r=110,sc=r/55;mapc.clearRect(0,0,w,w);mapc.save();mapc.beginPath();mapc.arc(r,r,r-3,0,7);mapc.clip();
+  // zone tints
+  for(const Z of ZONES){const dx=(Z.cx-P.x)*sc,dz=(Z.cz-P.z)*sc;mapc.fillStyle='rgba(255,255,255,.04)';mapc.beginPath();mapc.arc(r+dx,r+dz,Z.r*sc,0,7);mapc.fill()}
+  mapc.translate(r,r);mapc.rotate(camYaw);mapc.translate(-r,-r);
+  // berries
+  mapc.fillStyle='#ffb23e';for(const b of berries){const dx=(b.x-P.x)*sc,dz=(b.z-P.z)*sc;if(dx*dx+dz*dz>(r-6)*(r-6))continue;mapc.beginPath();mapc.arc(r+dx,r+dz,4,0,7);mapc.fill()}
+  // npcs
+  for(const n of npcs){if(n.dead)continue;const dx=(n.x-P.x)*sc,dz=(n.z-P.z)*sc;if(dx*dx+dz*dz>(r-6)*(r-6))continue;mapc.fillStyle=n.type==='trike'?'#d9b27a':'#a6e05a';mapc.beginPath();mapc.arc(r+dx,r+dz,n.type==='trike'?6:4,0,7);mapc.fill()}
+  // rexes / boss
+  for(const q of rexes){let dx=(q.x-P.x)*sc,dz=(q.z-P.z)*sc;const m=Math.hypot(dx,dz),lim=r-14;if(m>lim){dx*=lim/m;dz*=lim/m}mapc.fillStyle='#ff4a3a';mapc.beginPath();mapc.arc(r+dx,r+dz,q.boss?12:7,0,7);mapc.fill()}
+  // player
+  mapc.translate(r,r);mapc.rotate(-P.a+Math.PI);mapc.fillStyle='#a6e05a';mapc.beginPath();mapc.moveTo(0,-14);mapc.lineTo(9,10);mapc.lineTo(-9,10);mapc.fill();mapc.restore()}
+
+// ---- UPDATE ----
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+function update(dt){
+  let dx=(keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0),dz=(keys.arrowdown||keys.s?1:0)-(keys.arrowup||keys.w?1:0);
+  if(joy){dx=joy.dx/60;dz=joy.dy/60}
+  {const c=Math.cos(camYaw),s=Math.sin(camYaw),ix=dx,iz=dz;dx=ix*c+iz*s;dz=-ix*s+iz*c}
+  let m=Math.hypot(dx,dz);if(m>1){dx/=m;dz/=m;m=1}if(m<.12){m=0;dx=0;dz=0}
+  const run=(sprint||keys.shift)&&m>0&&!tired,sp=(run?16:10)*(1+.07*up.speed)*m*(slow>0?.55:1);
+  P.x=Math.max(-HS+3,Math.min(HS-3,P.x+dx*sp*dt));P.z=Math.max(-HS+3,Math.min(HS-3,P.z+dz*sp*dt));
+  if(m>0){const t=Math.atan2(dx,dz);let d=((t-P.a+Math.PI*3)%(Math.PI*2))-Math.PI;P.a+=d*Math.min(1,dt*10)}
+  P.s+=sp*dt*.9;
+  camYaw+=((keys.q?1:0)-(keys.e?1:0))*1.8*dt;
+  if(S.cam&&m>0)camYaw+=(((P.a+Math.PI-camYaw+Math.PI*3)%(Math.PI*2))-Math.PI)*Math.min(1,dt*1.2);
+  for(const t of trees){const ax=P.x-t.x,az=P.z-t.z,d=Math.hypot(ax,az),mn=t.r+.9;if(d<mn&&d>0){P.x=t.x+ax/d*mn;P.z=t.z+az/d*mn}}
+  if(run)stam-=36/(1+.15*up.stam)*dt;else stam=Math.min(100,stam+22*(1+.12*up.stam)*dt);
+  if(stam<=0){stam=0;tired=true}if(tired&&stam>25)tired=false;
+  hunger-=(3+(run?2.5:0))*(1-.08*up.meta)*dt;
+  // eat berries
+  for(let i=0;i<berries.length;i++){const b=berries[i];if(Math.hypot(b.x-P.x,b.z-P.z)<2.2){scene.remove(b.gr);berries[i]=newBerry();hunger=Math.min(100,hunger+16);eaten++;score++;coins++}}
+  // tick
+  hurt=Math.max(0,hurt-dt);shake=Math.max(0,shake-dt*2);biteCd=Math.max(0,biteCd-dt);biteT=Math.max(0,biteT-dt);slow=Math.max(0,slow-dt);ringT=Math.max(0,ringT-dt);
+  if(wantBite){wantBite=false;doBite();if(state!=='play')return}
+  if(hunger>50&&health<100)health=Math.min(100,health+3*dt);
+  // boss spawn trigger
+  if(!boss&&score>=BOSS_EVERY){score=0;spawnBoss()}
+  // rex repopulate (only when no boss)
+  const tsec=(performance.now()-t0)/1000;
+  if(!boss&&rexes.length<POP_REX+(tsec>120?1:0))rexes.push(spawnRex());
+  // rex AI
+  let warn=false;
+  for(const r of rexes){
+    const rx=P.x-r.x,rz=P.z-r.z,d=Math.hypot(rx,rz);r.t-=dt;
+    if(r.mode==='patrol'){if(Math.hypot(r.wx-r.x,r.wz-r.z)<4||r.t<=0){r.wx=(Math.random()*2-1)*(HS-12);r.wz=(Math.random()*2-1)*(HS-12);r.t=8}if(d<34){r.mode='chase';r.t=7}}
+    else if(r.mode==='chase'){if(r.t<=0||d>60){r.mode='rest';r.t=4}}
+    else if(r.t<=0){r.mode=r.boss?'chase':'patrol';r.t=r.boss?7:0}
+    let tx=r.wx,tz=r.wz,spd=4;
+    if(r.mode==='chase'){tx=P.x;tz=P.z;spd=r.boss?(r.dash>0?26:r.boss.spd):13}
+    else if(r.mode==='rest')spd=0;
+    const ax=tx-r.x,az=tz-r.z,ad=Math.hypot(ax,az);
+    if(spd&&ad>.1){r.x+=ax/ad*spd*dt;r.z+=az/ad*spd*dt;const ta=Math.atan2(ax,az);r.a+=(((ta-r.a+Math.PI*3)%(Math.PI*2))-Math.PI)*Math.min(1,dt*5);r.s+=spd*dt*.5}
+    for(const t of trees){const ex=r.x-t.x,ez=r.z-t.z,ed=Math.hypot(ex,ez),mn=t.r+1.8;if(ed<mn&&ed>0){r.x=t.x+ex/ed*mn;r.z=t.z+ez/ed*mn}}
+    r.x=Math.max(-HS+4,Math.min(HS-4,r.x));r.z=Math.max(-HS+4,Math.min(HS-4,r.z));
+    if(r.mode==='chase')warn=true;
+    if(r.boss){r.cd-=dt;r.dash-=dt;const B=r.boss;
+      if(B.ab==='lunge'&&r.mode==='chase'&&r.cd<=0&&d>8&&d<24){r.dash=.7;r.cd=5}
+      if(B.ab==='stomp'&&r.mode==='chase'&&r.cd<=0&&d<14){r.cd=5.5;shake=1;ringT=.6;ringX=r.x;ringZ=r.z;if(d<12&&hurt<=0){hurtP(20);hurt=1.2}}}
+    if(d<3.4+(r.k||1.25)*.8&&hurt<=0&&r.mode!=='rest'){hurtP(r.boss?r.boss.dmg:30);hurt=1.4;shake=1;r.mode='rest';r.t=r.boss?r.boss.rest:1.5;if(r.boss&&r.boss.ab==='chill')slow=2.5;if(d>0){P.x+=rx/d*5;P.z+=rz/d*5}}}
+  $('warn').style.opacity=warn?1:0;
+  // npc AI
+  for(const n of npcs){if(n.dead)continue;
+    const dx=P.x-n.x,dz=P.z-n.z,d=Math.hypot(dx,dz),tk=n.type==='trike';n.t-=dt;n.flash=Math.max(0,n.flash-dt);
+    let tx=n.wx,tz=n.wz,spd=3.5;
+    if(!tk){if(d<16){tx=n.x-dx;tz=n.z-dz;spd=11}else if(Math.hypot(n.wx-n.x,n.wz-n.z)<3||n.t<=0){n.wx=(Math.random()*2-1)*(HS-12);n.wz=(Math.random()*2-1)*(HS-12);n.t=5}if(d<1.9){killNpc(n);continue}}
+    else{if(n.mode==='wander'){spd=3;if(Math.hypot(n.wx-n.x,n.wz-n.z)<3||n.t<=0){n.wx=(Math.random()*2-1)*(HS-12);n.wz=(Math.random()*2-1)*(HS-12);n.t=8}if(d<13){n.mode='charge';n.t=2.8}}
+      else if(n.mode==='charge'){tx=P.x;tz=P.z;spd=15;if(n.t<=0){n.mode='rest';n.t=3}}
+      else{spd=0;if(n.t<=0)n.mode='wander'}
+      if(d<3.4&&n.mode==='charge'&&hurt<=0){hurtP(20);hurt=1.2;shake=.8;n.mode='rest';n.t=2.5;if(d>0){P.x+=dx/d*4;P.z+=dz/d*4}}}
+    const ax=tx-n.x,az=tz-n.z,ad=Math.hypot(ax,az);
+    if(spd&&ad>.1){n.x+=ax/ad*spd*dt;n.z+=az/ad*spd*dt;n.a+=(((Math.atan2(ax,az)-n.a+Math.PI*3)%(Math.PI*2))-Math.PI)*Math.min(1,dt*6);n.s+=spd*dt*.6}
+    for(const t of trees){const ex=n.x-t.x,ez=n.z-t.z,ed=Math.hypot(ex,ez),mn=t.r+n.r;if(ed<mn&&ed>0){n.x=t.x+ex/ed*mn;n.z=t.z+ez/ed*mn}}
+    n.x=Math.max(-HS+4,Math.min(HS-4,n.x));n.z=Math.max(-HS+4,Math.min(HS-4,n.z))}
+  if(hunger<=0){hunger=0;die('Starved')}else if(health<=0){health=0;die('Eaten')}
+  // HUD
+  let nd=1e9;for(const b of berries)nd=Math.min(nd,Math.hypot(b.x-P.x,b.z-P.z));
+  $('lb').style.width=health+'%';$('lb').style.opacity=hurt>0?.5:1;
+  $('hb').style.width=hunger+'%';$('hb').classList.toggle('low',hunger<25);
+  $('sb').style.width=stam+'%';$('sb').style.opacity=tired?.4:1;
+  $('sc').textContent=boss?'BOSS ⚔':eaten;
+  $('tm').textContent='◆ '+coins+' · '+fmt(Math.floor((performance.now()-t0)/1000));
+  $('obj').textContent=boss?boss.boss.name+' — bite it down':'Nearest berry '+Math.round(nd)+' m';
+  $('vig').style.opacity=state==='play'?Math.max(hunger<30?(30-hunger)/30:0,hurt/1.4*.8):0;
+  applyZone(nearestZone(P.x,P.z))}
+
+// ---- RENDER ----
+function render(now,moving){
+  const y=gh(P.x,P.z),tt=now/1000;
+  rap.position.set(P.x,y+(moving?Math.abs(Math.sin(P.s))*.25:Math.sin(tt*3)*.05),P.z);
+  rap.rotation.y=P.a;
+  if(biteT>0){const bz=Math.sin(biteT/.25*Math.PI)*1.3;rap.position.x+=Math.sin(P.a)*bz;rap.position.z+=Math.cos(P.a)*bz}
+  const sw=moving?Math.sin(P.s)*.9:0;legs[0].rotation.x=sw;legs[1].rotation.x=-sw;tail.rotation.z=Math.sin(tt*4)*.12;
+  berries.forEach((b,i)=>{b.b.position.y=1+Math.sin(tt*2+i)*.25;b.b.rotation.y=tt+i});
+  for(const n of npcs){if(n.dead)continue;n.g.position.set(n.x,gh(n.x,n.z)+Math.abs(Math.sin(n.s))*(n.type==='trike'?.1:.25),n.z);n.g.rotation.y=n.a;n.g.scale.setScalar(n.flash>0?1.12:1)}
+  for(const r of rexes){r.g.position.set(r.x,gh(r.x,r.z)+Math.abs(Math.sin(r.s))*.15,r.z);r.g.rotation.y=r.a;const w=r.mode==='rest'?0:Math.sin(r.s)*.7;r.g.userData.legs[0].rotation.x=w;r.g.userData.legs[1].rotation.x=-w}
+  ring.visible=ringT>0;if(ringT>0){const k=1-ringT/.6;ring.scale.setScalar(1+k*11);ring.position.set(ringX,gh(ringX,ringZ)+.4,ringZ);ring.material.opacity=.7*(1-k)}
+  rap.visible=hurt<=0||Math.floor(tt*14)%2===0;
+  cx+=(P.x-cx)*.1;cz+=(P.z-cz)*.1;
+  const sk=S.shake?shake*1.2:0,cp=Math.cos(camPitch);
+  cam.position.set(cx+Math.sin(camYaw)*cp*camDist+(Math.random()-.5)*sk,y+Math.sin(camPitch)*camDist+(Math.random()-.5)*sk,cz+Math.cos(camYaw)*cp*camDist);
+  cam.position.y=Math.max(cam.position.y,gh(cam.position.x,cam.position.z)+2.5);
+  cam.lookAt(cx,y+1.5,cz);
+  sun.position.set(P.x-30,y+45,P.z+20);sun.target.position.set(P.x,y,P.z);
+  ren.render(scene,cam);drawMap()}
+
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;let mv=false;
+  if(state==='play'){const bx=P.x,bz=P.z;update(dt);mv=Math.hypot(P.x-bx,P.z-bz)>.001}
+  render(now,mv);requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
