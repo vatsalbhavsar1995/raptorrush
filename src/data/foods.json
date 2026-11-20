@@ -1,0 +1,78 @@
+[
+  {
+    "id": "berry",
+    "name": "Berry",
+    "hunger": 16,
+    "evolution": 1,
+    "benefit": "stamina_regen",
+    "benefitPct": 0.01,
+    "score": 1,
+    "eaten": 1,
+    "pickupRange": 2.2,
+    "color": "#ffb23e",
+    "beamColor": "#ffc15a",
+    "beamOpacity": 0.28,
+    "radius": 0.5,
+    "beamRadius": 0.12,
+    "beamHeight": 9,
+    "baseY": 1.0,
+    "beamY": 5.0,
+    "bobAmp": 0.25,
+    "bobSpeed": 2.0,
+    "treeClearance": 1.2
+  },
+  {
+    "id": "compy",
+    "name": "Compy",
+    "hunger": 24,
+    "evolution": 2,
+    "benefit": "speed",
+    "benefitPct": 0.01,
+    "score": 2,
+    "eaten": 2,
+    "respawnMinMs": 8000,
+    "respawnExtraMs": 12000
+  },
+  {
+    "id": "trike",
+    "name": "Triceratops",
+    "hunger": 45,
+    "evolution": 6,
+    "benefit": "max_health",
+    "benefitPct": 0.03,
+    "score": 4,
+    "eaten": 4,
+    "respawnMinMs": 8000,
+    "respawnExtraMs": 12000
+  },
+  {
+    "id": "egg",
+    "name": "Egg",
+    "hunger": 30,
+    "evolution": 5,
+    "benefit": "bite_damage",
+    "benefitPct": 0.02,
+    "score": 3,
+    "eaten": 1
+  },
+  {
+    "id": "fish",
+    "name": "Fish",
+    "hunger": 20,
+    "evolution": 3,
+    "benefit": "speed",
+    "benefitPct": 0.015,
+    "score": 2,
+    "eaten": 1
+  },
+  {
+    "id": "boss",
+    "name": "Boss",
+    "hunger": 60,
+    "evolution": 25,
+    "benefit": "evolve_stage",
+    "benefitPct": 1.0,
+    "score": 0,
+    "eaten": 1
+  }
+]

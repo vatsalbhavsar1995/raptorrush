@@ -1,0 +1,61 @@
+[
+  {
+    "id": "alpha_rex",
+    "name": "Alpha Rex",
+    "hp": 60,
+    "scale": 1.9,
+    "speed": 11,
+    "damage": 30,
+    "tint": "#ffb070",
+    "restDuration": 2.2,
+    "ability": null
+  },
+  {
+    "id": "spinosaur",
+    "name": "Spinosaur",
+    "hp": 70,
+    "scale": 1.9,
+    "speed": 12,
+    "damage": 30,
+    "tint": "#70b0b8",
+    "sailColor": "#2f7f8a",
+    "restDuration": 2.0,
+    "ability": "lunge",
+    "abilityCooldown": 5.0,
+    "dashDuration": 0.7,
+    "dashSpeed": 26,
+    "abilityMinRange": 8,
+    "abilityMaxRange": 24
+  },
+  {
+    "id": "magma_rex",
+    "name": "Magma Rex",
+    "hp": 80,
+    "scale": 2.0,
+    "speed": 12,
+    "damage": 30,
+    "tint": "#663030",
+    "spikes": true,
+    "spikeColor": "#ff7a1a",
+    "restDuration": 2.0,
+    "ability": "stomp",
+    "abilityCooldown": 5.5,
+    "abilityRange": 14,
+    "stompHitRange": 12,
+    "stompDamage": 20,
+    "stompHurtCooldown": 1.2,
+    "ringDuration": 0.6
+  },
+  {
+    "id": "frost_tyrant",
+    "name": "Frost Tyrant",
+    "hp": 90,
+    "scale": 2.0,
+    "speed": 13,
+    "damage": 30,
+    "tint": "#aadcff",
+    "restDuration": 1.8,
+    "ability": "chill",
+    "chillDuration": 2.5
+  }
+]

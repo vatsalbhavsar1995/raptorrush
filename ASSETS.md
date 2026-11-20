@@ -1,4 +1,4 @@
-# Asset ledger
+# Assets
 
 | File | Source | Author | Licence |
 |---|---|---|---|
